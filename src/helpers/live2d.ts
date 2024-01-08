@@ -1,7 +1,11 @@
 'use client';
 
 import { type Application } from 'pixi.js';
-import { type Live2DModel, ModelSettings } from 'pixi-live2d-display';
+import {
+  type Cubism4InternalModel,
+  type Live2DModel,
+  ModelSettings,
+} from 'pixi-live2d-display';
 
 const SCALE = 2;
 
@@ -62,8 +66,8 @@ class ModelManagement {
 
       pixiLive2D.Live2DModel.registerTicker(PIXI.Ticker);
       const live2dModel = await pixiLive2D.Live2DModel.from(model, {
-        autoInteract: true,
-        // idleMotionGroup: 'disable_idle_motion',
+        autoInteract: false,
+        idleMotionGroup: 'disable_idle_motion',
       });
       const scale =
         (height / live2dModel.internalModel.originalHeight) * this.scale ||
@@ -76,6 +80,7 @@ class ModelManagement {
       // add live2d model to stage
       this.app?.stage.addChild(live2dModel);
       this.live2dModel = live2dModel;
+      (live2dModel.internalModel as Cubism4InternalModel).eyeBlink = undefined;
     } catch (error) {
       alert('🚀 Can not load model from server: ' + JSON.stringify(error));
     }
