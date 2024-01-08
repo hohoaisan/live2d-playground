@@ -75,6 +75,7 @@ class ModelManagement {
       this.app?.stage.removeChildren();
       // add live2d model to stage
       this.app?.stage.addChild(live2dModel);
+      this.live2dModel = live2dModel;
     } catch (error) {
       alert('🚀 Can not load model from server: ' + JSON.stringify(error));
     }
