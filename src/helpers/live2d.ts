@@ -7,6 +7,8 @@ import {
   ModelSettings,
 } from 'pixi-live2d-display';
 
+import { EParam } from '@/constants/enum';
+
 const SCALE = 2;
 
 const width = 1280;
@@ -99,6 +101,13 @@ class ModelManagement {
 
     await this.loadModel(this.modelUrl);
   };
+
+  setParameter(name: EParam, value: number) {
+    const coreModel = this.live2dModel?.internalModel
+      .coreModel as Cubism4InternalModel['coreModel'];
+    if (!coreModel) return;
+    coreModel.setParameterValueById(name, value);
+  }
 }
 
 const model = new ModelManagement();

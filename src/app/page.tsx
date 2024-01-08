@@ -17,13 +17,53 @@ import {
   useState,
 } from 'react';
 
+import { Slider } from '@/components';
+
+import { EParam, ParamDef } from '@/constants/enum';
+
 import live2dModel from '../helpers/live2d';
+
+const selectedParams = [
+  EParam.ParamAngleX,
+  EParam.ParamAngleY,
+  EParam.ParamAngleZ,
+  EParam.ParamEyeLOpen,
+  EParam.ParamEyeLSmile,
+  EParam.ParamEyeROpen,
+  EParam.ParamEyeRSmile,
+  EParam.ParamEyeBallX,
+  EParam.ParamEyeBallY,
+  EParam.ParamEyeBallForm,
+  EParam.ParamBrowLY,
+  EParam.ParamBrowRY,
+  EParam.ParamBrowLX,
+  EParam.ParamBrowRX,
+  EParam.ParamBrowLAngle,
+  EParam.ParamBrowRAngle,
+  EParam.ParamBrowLForm,
+  EParam.ParamBrowRForm,
+  EParam.ParamMouthForm,
+  EParam.ParamMouthOpenY,
+  EParam.ParamCheek,
+  EParam.ParamBodyAngleX,
+  EParam.ParamBodyAngleY,
+  EParam.ParamBodyAngleZ,
+];
+
+const initState = selectedParams.reduce(
+  (s, param) => ({
+    ...s,
+    [param]: ParamDef[param].default,
+  }),
+  {} as Record<EParam, number>
+);
 
 const Playground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scaleValue, setScaleValue] = useState(2);
   const [motions, setMotions] = useState<string[]>([]);
   const [expressions, setExpressions] = useState<string[]>([]);
+  const [state, setState] = useState(initState);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -33,6 +73,10 @@ const Playground = () => {
         const expressions = live2dModel.getExpressions();
         setMotions(motions);
         setExpressions(expressions);
+        for (const param in state) {
+          const value = state[param as EParam];
+          live2dModel.setParameter(param as EParam, value);
+        }
       });
     }
   }, []);
@@ -40,6 +84,13 @@ const Playground = () => {
   useEffect(() => {
     live2dModel.changeScale(scaleValue || 2);
   }, [scaleValue]);
+
+  useEffect(() => {
+    for (const param in state) {
+      const value = state[param as EParam];
+      live2dModel.setParameter(param as EParam, value);
+    }
+  }, [state]);
 
   const onZipUploadChange: ChangeEventHandler<HTMLInputElement> = useCallback(
     async (event) => {
@@ -132,6 +183,39 @@ const Playground = () => {
             </CardBody>
           </Card>
         </div>
+      </div>
+      <div className='container mx-auto mb-2 px-4'>
+        <Card>
+          <CardBody>
+            <div className='mb-4 flex flex-wrap gap-x-12'>
+              {selectedParams.map((paramName) => {
+                const param = ParamDef[paramName];
+                return (
+                  <div
+                    key={paramName}
+                    className='flex w-full items-center justify-between lg:w-[45%] xl:w-[30%]'
+                  >
+                    <p>{paramName}</p>
+                    <div className='w-40'>
+                      <Slider
+                        min={param.min}
+                        max={param.max}
+                        step={(param.max - param.min) / 20}
+                        value={[state[paramName]]}
+                        onValueChange={([value]) => {
+                          setState((state) => ({
+                            ...state,
+                            [paramName]: value,
+                          }));
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardBody>
+        </Card>
       </div>
     </div>
   );

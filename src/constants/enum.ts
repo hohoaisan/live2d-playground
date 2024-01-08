@@ -1,0 +1,155 @@
+export enum EParam {
+  ParamAngleX = 'ParamAngleX',
+  ParamAngleY = 'ParamAngleY',
+  ParamAngleZ = 'ParamAngleZ',
+  ParamEyeLOpen = 'ParamEyeLOpen',
+  ParamEyeLSmile = 'ParamEyeLSmile',
+  ParamEyeROpen = 'ParamEyeROpen',
+  ParamEyeRSmile = 'ParamEyeRSmile',
+  ParamEyeBallX = 'ParamEyeBallX',
+  ParamEyeBallY = 'ParamEyeBallY',
+  ParamEyeBallForm = 'ParamEyeBallForm',
+  ParamBrowLY = 'ParamBrowLY',
+  ParamBrowRY = 'ParamBrowRY',
+  ParamBrowLX = 'ParamBrowLX',
+  ParamBrowRX = 'ParamBrowRX',
+  ParamBrowLAngle = 'ParamBrowLAngle',
+  ParamBrowRAngle = 'ParamBrowRAngle',
+  ParamBrowLForm = 'ParamBrowLForm',
+  ParamBrowRForm = 'ParamBrowRForm',
+  ParamMouthForm = 'ParamMouthForm',
+  ParamMouthOpenY = 'ParamMouthOpenY',
+  ParamCheek = 'ParamCheek',
+  ParamBodyAngleX = 'ParamBodyAngleX',
+  ParamBodyAngleY = 'ParamBodyAngleY',
+  ParamBodyAngleZ = 'ParamBodyAngleZ',
+  ParamBreath = 'ParamBreath',
+}
+
+export const ParamDef = {
+  [EParam.ParamAngleX]: {
+    min: -30,
+    max: 30,
+    default: 0,
+  },
+  [EParam.ParamAngleY]: {
+    min: -30,
+    max: 30,
+    default: 0,
+  },
+  [EParam.ParamAngleZ]: {
+    min: -30,
+    max: 30,
+    default: 0,
+  },
+  [EParam.ParamEyeLOpen]: {
+    min: 0,
+    max: 1,
+    default: 1,
+  },
+  [EParam.ParamEyeLSmile]: {
+    min: 0,
+    max: 1,
+    default: 1,
+  },
+  [EParam.ParamEyeROpen]: {
+    min: 0,
+    max: 1,
+    default: 1,
+  },
+  [EParam.ParamEyeRSmile]: {
+    min: 0,
+    max: 1,
+    default: 1,
+  },
+  [EParam.ParamEyeBallX]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamEyeBallY]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamEyeBallForm]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamBrowLY]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamBrowRY]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamBrowLX]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamBrowRX]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamBrowLAngle]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamBrowRAngle]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamBrowLForm]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamBrowRForm]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamMouthForm]: {
+    min: -1,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamMouthOpenY]: {
+    min: 0,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamCheek]: {
+    min: 0,
+    max: 1,
+    default: 0,
+  },
+  [EParam.ParamBodyAngleX]: {
+    min: -10,
+    max: 10,
+    default: 0,
+  },
+  [EParam.ParamBodyAngleY]: {
+    min: -10,
+    max: 10,
+    default: 0,
+  },
+  [EParam.ParamBodyAngleZ]: {
+    min: -10,
+    max: 10,
+    default: 0,
+  },
+  [EParam.ParamBreath]: {
+    min: 0,
+    max: 1,
+    default: 1,
+  },
+};
