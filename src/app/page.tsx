@@ -74,17 +74,19 @@ const Playground = () => {
           </Typography>
         </div>
       </Navbar>
-      <div className='container mx-auto px-4'>
-        <div className='flex flex-col gap-2 md:flex-row'>
-          <Card className='aspect-video flex-1 bg-black'>
-            <canvas
-              ref={canvasRef}
-              className='h-full w-full'
-              width={1280}
-              height={720}
-            />
-          </Card>
-          <Card className='max-w-full xl:max-w-xs'>
+      <div className='container mx-auto mb-2 px-4'>
+        <div className='flex flex-col gap-2 lg:flex-row'>
+          <div className='w-full lg:w-[50%] xl:w-fit'>
+            <Card className='aspect-video flex-1 bg-black'>
+              <canvas
+                ref={canvasRef}
+                className='h-full w-full'
+                width={1280}
+                height={720}
+              />
+            </Card>
+          </div>
+          <Card className='w-full lg:w-[50%] xl:w-[450px]'>
             <CardBody>
               <div className='mb-4'>
                 <Input
