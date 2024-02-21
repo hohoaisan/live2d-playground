@@ -19,6 +19,7 @@ class ModelManagement {
   live2dModel: Live2DModel | null;
   modelUrl: string;
   scale: number = SCALE;
+  isFlip = false;
 
   constructor() {
     this.modelUrl = '';
@@ -68,9 +69,10 @@ class ModelManagement {
 
       pixiLive2D.Live2DModel.registerTicker(PIXI.Ticker);
       const live2dModel = await pixiLive2D.Live2DModel.from(model, {
-        autoInteract: false,
+        autoInteract: true,
         idleMotionGroup: 'disable_idle_motion',
       });
+
       const scale =
         (height / live2dModel.internalModel.originalHeight) * this.scale ||
         SCALE;
@@ -88,10 +90,22 @@ class ModelManagement {
     }
   };
 
-  initialize = async (canvas: HTMLCanvasElement) => {
+  flipView = (isFlip = this.isFlip) => {
+    if (!this.app) return;
+    this.isFlip = isFlip;
+    if (isFlip) {
+      this.app.stage.scale.x = -1;
+      this.app.stage.x = width;
+    } else {
+      this.app.stage.scale.x = 1;
+      this.app.stage.x = 0;
+    }
+  };
+
+  initialize = async (viewCanvas: HTMLCanvasElement) => {
     const PIXI = await import('pixi.js');
     this.app = new PIXI.Application({
-      view: canvas,
+      view: viewCanvas,
       autoStart: true,
       transparent: true,
       backgroundAlpha: 0,
@@ -107,6 +121,17 @@ class ModelManagement {
       .coreModel as Cubism4InternalModel['coreModel'];
     if (!coreModel) return;
     coreModel.setParameterValueById(name, value);
+  }
+
+  async extractRenderBlob(canvas: HTMLCanvasElement) {
+    const sourceCanvas = canvas;
+    if (!sourceCanvas) return;
+    const extractCanvas = document.createElement('canvas');
+    const extractContext = extractCanvas.getContext('2d');
+    extractCanvas.width = width;
+    extractCanvas.height = height;
+    extractContext?.drawImage(sourceCanvas, 0, 0);
+    return await new Promise<Blob | null>((r) => extractCanvas.toBlob(r));
   }
 }
 

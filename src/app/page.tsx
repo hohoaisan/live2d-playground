@@ -4,10 +4,14 @@ import {
   Button,
   Card,
   CardBody,
+  IconButton,
   Input,
   Navbar,
   Typography,
 } from '@material-tailwind/react';
+import { saveAs } from 'file-saver';
+import JSZip from 'jszip';
+import { XIcon } from 'lucide-react';
 import Script from 'next/script';
 import {
   ChangeEventHandler,
@@ -19,7 +23,7 @@ import {
 
 import { Slider } from '@/components';
 
-import { EParam, ParamDef } from '@/constants/enum';
+import { EParam, initialPresets, ParamDef } from '@/constants/enum';
 
 import live2dModel from '../helpers/live2d';
 
@@ -55,15 +59,22 @@ const initState = selectedParams.reduce(
     ...s,
     [param]: ParamDef[param].default,
   }),
-  {} as Record<EParam, number>
+  {} as { [key in EParam]?: number }
 );
 
 const Playground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [scaleValue, setScaleValue] = useState(2);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [scaleValue, setScaleValue] = useState(1);
   const [motions, setMotions] = useState<string[]>([]);
   const [expressions, setExpressions] = useState<string[]>([]);
   const [state, setState] = useState(initState);
+  const [presets, setPresets] = useState<
+    {
+      name: string;
+      state: { [key in EParam]?: number };
+    }[]
+  >([...initialPresets]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -75,7 +86,7 @@ const Playground = () => {
         setExpressions(expressions);
         for (const param in state) {
           const value = state[param as EParam];
-          live2dModel.setParameter(param as EParam, value);
+          value && live2dModel.setParameter(param as EParam, value);
         }
       });
     }
@@ -88,7 +99,7 @@ const Playground = () => {
   useEffect(() => {
     for (const param in state) {
       const value = state[param as EParam];
-      live2dModel.setParameter(param as EParam, value);
+      value && live2dModel.setParameter(param as EParam, value);
     }
   }, [state]);
 
@@ -114,6 +125,14 @@ const Playground = () => {
     live2dModel.changeExpression(e);
   }, []);
 
+  useEffect(() => {
+    setPresets(JSON.parse(localStorage.getItem('PRESETS') || '[]') || []);
+  }, []);
+
+  useEffect(() => {
+    presets && localStorage.setItem('PRESETS', JSON.stringify(presets));
+  }, [presets]);
+
   return (
     <div>
       <Script src='/js/live2d.min.js' async />
@@ -128,7 +147,7 @@ const Playground = () => {
       <div className='container mx-auto mb-2 px-4'>
         <div className='flex flex-col gap-2 lg:flex-row'>
           <div className='w-full lg:w-[50%] xl:w-fit'>
-            <Card className='aspect-video flex-1 bg-black'>
+            <Card className='aspect-video flex-1'>
               <canvas
                 ref={canvasRef}
                 className='h-full w-full'
@@ -201,7 +220,7 @@ const Playground = () => {
                         min={param.min}
                         max={param.max}
                         step={(param.max - param.min) / 20}
-                        value={[state[paramName]]}
+                        value={[state[paramName] || param.default]}
                         onValueChange={([value]) => {
                           setState((state) => ({
                             ...state,
@@ -213,6 +232,90 @@ const Playground = () => {
                   </div>
                 );
               })}
+            </div>
+            <div className='mb-4 flex gap-2'>
+              <Input crossOrigin='' label='Preset' inputRef={inputRef}></Input>
+              <div className='w-52'>
+                <Button
+                  className='w-full'
+                  onClick={() => {
+                    if (!inputRef.current) return;
+                    const name = inputRef.current.value;
+                    setPresets((presets) => [
+                      ...(presets || []),
+                      { name, state },
+                    ]);
+                    inputRef.current.value = '';
+                  }}
+                >
+                  Add preset
+                </Button>
+              </div>
+            </div>
+            <div className='mb-4'>
+              <Typography>Presets</Typography>
+              <div className='flex flex-wrap gap-1'>
+                {presets?.map(({ name, state }, index) => (
+                  <Button
+                    variant='outlined'
+                    className='pr-2'
+                    key={index}
+                    onClick={() => {
+                      setState(state);
+                    }}
+                  >
+                    {name}
+                    <IconButton
+                      className='ml-4 p-1'
+                      size='sm'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPresets([
+                          ...presets.slice(0, index),
+                          ...presets.slice(index + 1, presets.length),
+                        ]);
+                      }}
+                    >
+                      <XIcon />
+                    </IconButton>
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className='mb-4'>
+              <Button
+                onClick={async () => {
+                  const zip = new JSZip();
+                  if (!canvasRef.current) return;
+                  for (const pose of presets || []) {
+                    setState(pose.state);
+                    // live2dModel.setParameter(param as EParam, value);
+                    await new Promise((r) => setTimeout(r, 1000));
+                    const file = await live2dModel.extractRenderBlob(
+                      canvasRef.current
+                    );
+                    if (!file) return;
+                    const fileName = `image-${pose.name.replaceAll(
+                      ' ',
+                      '-'
+                    )}.png`;
+                    zip.file(fileName, file);
+                  }
+                  // const file = await live2dModel.extractRenderBlob(
+                  //   canvasRef.current
+                  // );
+                  // if (!file) return;
+                  // const date = new Date();
+                  // const fileName = `image-${date.toTimeString()}.png`;
+                  // saveAs(file, fileName);
+                  // zip.file(fileName, file);
+                  zip.generateAsync({ type: 'blob' }).then((context) => {
+                    saveAs(context, 'example.zip');
+                  });
+                }}
+              >
+                Zip file
+              </Button>
             </div>
           </CardBody>
         </Card>
