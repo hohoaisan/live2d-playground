@@ -9,10 +9,10 @@ import {
 
 import { EParam } from '@/constants/enum';
 
-const SCALE = 2;
+const SCALE = 1;
 
-const width = 1280;
-const height = 720;
+const width = window.innerWidth;
+const height = window.innerHeight;
 
 class ModelManagement {
   app: Application | null;
@@ -109,8 +109,9 @@ class ModelManagement {
       autoStart: true,
       transparent: true,
       backgroundAlpha: 0,
-      width: width,
-      height: height,
+      // width: width,
+      // height: height,
+      resizeTo: window,
     });
 
     await this.loadModel(this.modelUrl);
