@@ -116,14 +116,14 @@ const Playground = () => {
 
   useEffect(() => {
     live2dModel?.changeScale(scaleValue || 1);
-  }, [scaleValue]);
+  }, [scaleValue, live2dModel]);
 
   useEffect(() => {
     for (const param in state) {
       const value = state[param as EParam];
       value && live2dModel?.setParameter(param as EParam, value);
     }
-  }, [state]);
+  }, [state, live2dModel]);
 
   const onZipUploadChange: ChangeEventHandler<HTMLInputElement> = useCallback(
     async (event) => {
@@ -136,16 +136,22 @@ const Playground = () => {
       setMotions(motions);
       setExpressions(expressions);
     },
-    []
+    [live2dModel]
   );
 
-  const onMotionClick = useCallback((motion: string) => {
-    live2dModel?.playMotion(motion);
-  }, []);
+  const onMotionClick = useCallback(
+    (motion: string) => {
+      live2dModel?.playMotion(motion);
+    },
+    [live2dModel]
+  );
 
-  const onExpressionClick = useCallback((e: string) => {
-    live2dModel?.changeExpression(e);
-  }, []);
+  const onExpressionClick = useCallback(
+    (e: string) => {
+      live2dModel?.changeExpression(e);
+    },
+    [live2dModel]
+  );
 
   useEffect(() => {
     setPresets(JSON.parse(localStorage.getItem('PRESETS') || '[]') || []);
@@ -223,7 +229,7 @@ const Playground = () => {
             containerProps={{
               className: 'min-w-0',
             }}
-            className='px-12'
+            className='!px-12'
           />
           <IconButton
             size='sm'
