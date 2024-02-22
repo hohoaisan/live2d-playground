@@ -146,15 +146,24 @@ class ModelManagement {
     model.on('pointerup', () => (this.dragging = false));
   };
 
-  async extractRenderBlob(canvas: HTMLCanvasElement) {
-    const sourceCanvas = canvas;
-    if (!sourceCanvas) return;
-    const extractCanvas = document.createElement('canvas');
-    const extractContext = extractCanvas.getContext('2d');
-    extractCanvas.width = width;
-    extractCanvas.height = height;
-    extractContext?.drawImage(sourceCanvas, 0, 0);
-    return await new Promise<Blob | null>((r) => extractCanvas.toBlob(r));
+  async extractRenderBlob(_canvas: HTMLCanvasElement) {
+    const image = await this.app?.renderer.plugins.extract.base64(
+      this.app?.stage
+    );
+
+    const response = await fetch(image);
+    const blob = await response.blob();
+
+    return blob;
+
+    // const sourceCanvas = canvas;
+    // if (!sourceCanvas) return;
+    // const extractCanvas = document.createElement('canvas');
+    // const extractContext = extractCanvas.getContext('2d');
+    // extractCanvas.width = window.innerWidth;
+    // extractCanvas.height = window.innerHeight;
+    // extractContext?.drawImage(sourceCanvas, 0, 0);
+    // return await new Promise<Blob | null>((r) => extractCanvas.toBlob(r));
   }
 }
 
