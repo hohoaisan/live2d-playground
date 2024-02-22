@@ -14,6 +14,8 @@ import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 import {
   CameraIcon,
+  MinusIcon,
+  PlusIcon,
   Settings,
   Settings2,
   UserCircleIcon,
@@ -209,16 +211,40 @@ const Playground = () => {
             onChange={onZipUploadChange}
           />
         </div>
-        <div className='mb-4'>
+        <div className='relative mb-4 flex flex-row content-center items-center '>
           <Input
             label='Scale value'
-            variant='static'
+            // variant='static'
             crossOrigin=''
             value={scaleValue}
             type='number'
             step={0.1}
             onChange={(e) => setScaleValue(Number(e.target.value))}
+            containerProps={{
+              className: 'min-w-0',
+            }}
+            className='px-12'
           />
+          <IconButton
+            size='sm'
+            variant='text'
+            className='!absolute left-1 top-1 rounded'
+            onClick={() =>
+              setScaleValue((scale) => Math.max(0.1, (scale * 10 - 1) / 10))
+            }
+          >
+            <MinusIcon />
+          </IconButton>
+          <IconButton
+            size='sm'
+            variant='text'
+            className='!absolute right-1 top-1 rounded'
+            onClick={() =>
+              setScaleValue((scale) => Math.min(10, (scale * 10 + 1) / 10))
+            }
+          >
+            <PlusIcon />
+          </IconButton>
         </div>
         <div className='mb-4'>
           <Typography>Motions</Typography>
