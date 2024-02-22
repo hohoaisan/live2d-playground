@@ -14,7 +14,7 @@ const SCALE = 1;
 const width = window.innerWidth;
 const height = window.innerHeight;
 
-class ModelManagement {
+export class ModelManagement {
   app: Application | null;
   live2dModel: Live2DModel | null;
   modelUrl: string;

@@ -34,7 +34,7 @@ import { Drawer, Slider } from '@/components';
 
 import { EParam, initialPresets, ParamDef } from '@/constants/enum';
 
-import live2dModel from '../helpers/live2d';
+import { type ModelManagement } from '../helpers/live2d';
 
 const selectedParams = [
   EParam.ParamAngleX,
@@ -74,6 +74,7 @@ const initState = selectedParams.reduce(
 const Playground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [live2dModel, setLive2dModel] = useState<ModelManagement | null>(null);
   const [scaleValue, setScaleValue] = useState(1);
   const [motions, setMotions] = useState<string[]>([]);
   const [expressions, setExpressions] = useState<string[]>([]);
@@ -90,30 +91,35 @@ const Playground = () => {
   const presetDisclose = useDisclose();
 
   useEffect(() => {
-    if (canvasRef.current) {
-      live2dModel.modelUrl = '/model/hiyori_pro_t11/hiyori_pro_t11.model3.json';
-      live2dModel.initialize(canvasRef.current).then(() => {
-        const motions = live2dModel.getMotions();
-        const expressions = live2dModel.getExpressions();
-        setMotions(motions);
-        setExpressions(expressions);
-        for (const param in state) {
-          const value = state[param as EParam];
-          value && live2dModel.setParameter(param as EParam, value);
-        }
-        live2dModel.changeScale(1);
-      });
-    }
+    (async () => {
+      if (canvasRef.current) {
+        const live2dModel = (await import('../helpers/live2d')).default;
+        live2dModel.modelUrl =
+          '/model/hiyori_pro_t11/hiyori_pro_t11.model3.json';
+        live2dModel.initialize(canvasRef.current).then(() => {
+          const motions = live2dModel?.getMotions();
+          const expressions = live2dModel?.getExpressions();
+          setMotions(motions);
+          setExpressions(expressions);
+          for (const param in state) {
+            const value = state[param as EParam];
+            value && live2dModel?.setParameter(param as EParam, value);
+          }
+          live2dModel.changeScale(1);
+          setLive2dModel(live2dModel);
+        });
+      }
+    })();
   }, []);
 
   useEffect(() => {
-    live2dModel.changeScale(scaleValue || 1);
+    live2dModel?.changeScale(scaleValue || 1);
   }, [scaleValue]);
 
   useEffect(() => {
     for (const param in state) {
       const value = state[param as EParam];
-      value && live2dModel.setParameter(param as EParam, value);
+      value && live2dModel?.setParameter(param as EParam, value);
     }
   }, [state]);
 
@@ -122,9 +128,9 @@ const Playground = () => {
       const files = event.target.files;
       const file = files?.[0];
       if (!file) return;
-      await live2dModel.loadModel([file]);
-      const motions = live2dModel.getMotions();
-      const expressions = live2dModel.getExpressions();
+      await live2dModel?.loadModel([file]);
+      const motions = live2dModel?.getMotions() || [];
+      const expressions = live2dModel?.getExpressions() || [];
       setMotions(motions);
       setExpressions(expressions);
     },
@@ -132,11 +138,11 @@ const Playground = () => {
   );
 
   const onMotionClick = useCallback((motion: string) => {
-    live2dModel.playMotion(motion);
+    live2dModel?.playMotion(motion);
   }, []);
 
   const onExpressionClick = useCallback((e: string) => {
-    live2dModel.changeExpression(e);
+    live2dModel?.changeExpression(e);
   }, []);
 
   useEffect(() => {
@@ -170,7 +176,7 @@ const Playground = () => {
             <SpeedDialAction
               onClick={async () => {
                 if (!canvasRef.current) return;
-                const file = await live2dModel.extractRenderBlob(
+                const file = await live2dModel?.extractRenderBlob(
                   canvasRef.current
                 );
                 if (!file) return;
@@ -322,9 +328,9 @@ const Playground = () => {
               if (!canvasRef.current) return;
               for (const pose of presets || []) {
                 setState(pose.state);
-                // live2dModel.setParameter(param as EParam, value);
+                // live2dModel?.setParameter(param as EParam, value);
                 await new Promise((r) => setTimeout(r, 1000));
-                const file = await live2dModel.extractRenderBlob(
+                const file = await live2dModel?.extractRenderBlob(
                   canvasRef.current
                 );
                 if (!file) return;
