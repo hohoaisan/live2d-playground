@@ -84,6 +84,7 @@ class ModelManagement {
       // add live2d model to stage
       this.app?.stage.addChild(live2dModel);
       this.live2dModel = live2dModel;
+      this.draggable(live2dModel);
       (live2dModel.internalModel as Cubism4InternalModel).eyeBlink = undefined;
     } catch (error) {
       alert('🚀 Can not load model from server: ' + JSON.stringify(error));
@@ -123,6 +124,27 @@ class ModelManagement {
     if (!coreModel) return;
     coreModel.setParameterValueById(name, value);
   }
+
+  dragging = false;
+  _pointerX = 0;
+  _pointerY = 0;
+
+  draggable = (model: Live2DModel) => {
+    model.buttonMode = true;
+    model.on('pointerdown', (e) => {
+      this.dragging = true;
+      this._pointerX = e.data.global.x - model.x;
+      this._pointerY = e.data.global.y - model.y;
+    });
+    model.on('pointermove', (e) => {
+      if (this.dragging) {
+        model.position.x = e.data.global.x - this._pointerX;
+        model.position.y = e.data.global.y - this._pointerY;
+      }
+    });
+    model.on('pointerupoutside', () => (this.dragging = false));
+    model.on('pointerup', () => (this.dragging = false));
+  };
 
   async extractRenderBlob(canvas: HTMLCanvasElement) {
     const sourceCanvas = canvas;
