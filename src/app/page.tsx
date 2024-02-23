@@ -8,6 +8,7 @@ import {
   SpeedDialAction,
   SpeedDialContent,
   SpeedDialHandler,
+  Switch,
   Typography,
 } from '@material-tailwind/react';
 import { saveAs } from 'file-saver';
@@ -251,6 +252,17 @@ const Playground = () => {
           >
             <PlusIcon />
           </IconButton>
+        </div>
+        <div className='mb-4'>
+          <Switch
+            label='Motion tracking'
+            crossOrigin=''
+            onClick={() => {
+              if (!live2dModel) return;
+              live2dModel.isTracking = !live2dModel?.isTracking;
+              live2dModel.switchTracking();
+            }}
+          />
         </div>
         <div className='mb-4'>
           <Typography>Motions</Typography>
