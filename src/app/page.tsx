@@ -30,6 +30,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useBreakpoint } from 'use-breakpoint';
 
 import { useDisclose } from '@/hooks';
 
@@ -74,6 +75,8 @@ const initState = selectedParams.reduce(
   {} as { [key in EParam]?: number }
 );
 
+const BREAKPOINTS = { mobile: 0, desktop: 1280 };
+
 const Playground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -82,6 +85,7 @@ const Playground = () => {
   const [motions, setMotions] = useState<string[]>([]);
   const [expressions, setExpressions] = useState<string[]>([]);
   const [state, setState] = useState(initState);
+  const { breakpoint } = useBreakpoint(BREAKPOINTS, 'mobile');
   const [presets, setPresets] = useState<
     {
       name: string;
@@ -203,7 +207,7 @@ const Playground = () => {
       </div>
       <Drawer
         title='Model'
-        placement='left'
+        placement={breakpoint === 'mobile' ? 'bottom' : 'left'}
         open={modelDisclose.isOpen}
         onClose={modelDisclose.onClose}
         size={500}
@@ -287,7 +291,7 @@ const Playground = () => {
       </Drawer>
       <Drawer
         title='Presets'
-        placement='left'
+        placement={breakpoint === 'mobile' ? 'bottom' : 'left'}
         open={presetDisclose.isOpen}
         onClose={presetDisclose.onClose}
         size={500}
