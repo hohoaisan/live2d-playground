@@ -319,43 +319,40 @@ export class ModelManagement {
         lerpAmount
       )
     );
-
-    // Simple example without winking.
-    // Interpolate based on old blendshape, then stabilize blink with `Kalidokit` helper function.
-    const stabilizedEyes = Face.stabilizeBlink(
-      {
-        l: lerp(
-          resultRigFace.eye.l,
-          coreModel.getParameterValueById('ParamEyeLOpen'),
-          0.7
-        ),
-        r: lerp(
-          resultRigFace.eye.r,
-          coreModel.getParameterValueById('ParamEyeROpen'),
-          0.7
-        ),
-      },
-      resultRigFace.head.y
-    );
     // eye blink
-    coreModel.setParameterValueById('ParamEyeLOpen', stabilizedEyes.l);
-    coreModel.setParameterValueById('ParamEyeROpen', stabilizedEyes.r);
+    coreModel.setParameterValueById(
+      'ParamEyeLOpen',
+      lerp(
+        resultRigFace.eye.l,
+        coreModel.getParameterValueById('ParamEyeLOpen'),
+        0.3
+      )
+    );
+    coreModel.setParameterValueById(
+      'ParamEyeROpen',
+      lerp(
+        resultRigFace.eye.r,
+        coreModel.getParameterValueById('ParamEyeROpen'),
+        0.3
+      )
+    );
 
     const stabilizedBrow = Face.stabilizeBlink(
       {
         l: lerp(
-          stabilizedEyes.l,
+          resultRigFace.eye.l,
           coreModel.getParameterValueById('ParamBrowLY'),
           0.7
         ),
         r: lerp(
-          stabilizedEyes.r,
+          resultRigFace.eye.r,
           coreModel.getParameterValueById('ParamBrowRY'),
           0.7
         ),
       },
       resultRigFace.head.y
     );
+
     coreModel.setParameterValueById('ParamBrowLY', stabilizedBrow.l);
     coreModel.setParameterValueById('ParamBrowRY', stabilizedBrow.r);
 
