@@ -171,8 +171,8 @@ const Playground = () => {
       <Script src='/js/live2d.min.js' async />
       <Script src='/js/live2dcubismcore.min.js' async />
       <canvas ref={canvasRef} className='h-[100vh] w-[100vw]' />
-      <div className='absolute left-2 top-2'>
-        <SpeedDial placement='bottom' open={controlDisclose.isOpen}>
+      <div className='absolute bottom-2 left-2'>
+        <SpeedDial placement='top' open={controlDisclose.isOpen}>
           <SpeedDialHandler>
             <IconButton
               size='lg'

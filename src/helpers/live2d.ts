@@ -1,6 +1,5 @@
 'use client';
 
-import { Camera } from '@mediapipe/camera_utils';
 import { drawConnectors } from '@mediapipe/drawing_utils';
 import {
   FACEMESH_TESSELATION,
@@ -16,6 +15,33 @@ import {
   type Live2DModel,
   ModelSettings,
 } from 'pixi-live2d-display';
+import Stats from 'stats.js';
+
+import { Camera } from '../helpers/camera';
+
+const stats = new Stats();
+stats.showPanel(0);
+const div = document.createElement('div');
+
+div.style.zIndex = '10';
+div.style.position = 'relative';
+div.style.top = '0';
+div.style.right = '0';
+div.appendChild(stats.dom);
+
+document.body.appendChild(div);
+
+function animate() {
+  stats.begin();
+
+  // monitored code goes here
+
+  stats.end();
+
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
 
 const { lerp } = Vector;
 
@@ -26,11 +52,46 @@ const SCALE = 1;
 const width = window.innerWidth;
 const height = window.innerHeight;
 
+const defaultWidth = 320,
+  defaultHeight = 240;
+
 const videoElement = document.createElement('video');
+videoElement.width = defaultWidth;
+videoElement.height = defaultHeight;
+// videoElement.style.width = '320px';
+// videoElement.style.height = '240px';
+// videoElement.style.zIndex = '10';
+// videoElement.style.position = 'absolute';
+// videoElement.style.top = '0';
+// videoElement.style.right = '0';
+// document.body.append(videoElement);
 
 const guideCanvas = document.createElement('canvas');
+guideCanvas.width = defaultWidth;
+guideCanvas.height = defaultHeight;
+guideCanvas.style.width = '320px';
+guideCanvas.style.height = '240px';
+guideCanvas.style.zIndex = '10';
+guideCanvas.style.position = 'absolute';
+guideCanvas.style.top = '0';
+guideCanvas.style.right = '0';
+document.body.append(guideCanvas);
+
+const captureCanvas = document.createElement('canvas');
+captureCanvas.width = defaultWidth;
+captureCanvas.height = defaultHeight;
+const captureCtx = captureCanvas.getContext('2d');
 let camera: Camera | null = null;
-let holistic: Holistic | null = null;
+const holistic: Holistic | null = null;
+
+const holisticWorker = new Worker('/holistic/worker.js');
+
+function getCaptureFrame() {
+  captureCtx?.clearRect(0, 0, defaultWidth, defaultHeight);
+  captureCtx?.drawImage(videoElement, 0, 0);
+  return captureCtx?.getImageData(0, 0, defaultWidth, defaultHeight).data
+    .buffer;
+}
 
 export class ModelManagement {
   app: Application | null;
@@ -88,7 +149,7 @@ export class ModelManagement {
 
       pixiLive2D.Live2DModel.registerTicker(PIXI.Ticker);
       const live2dModel = await pixiLive2D.Live2DModel.from(model, {
-        autoInteract: true,
+        autoInteract: false,
         idleMotionGroup: 'disable_idle_motion',
       });
 
@@ -402,13 +463,30 @@ export class ModelManagement {
         video: videoElement,
       });
 
-      poseRig && riggedFace && this.rigFaceAndPose(riggedFace, poseRig, 0.5);
+      poseRig && riggedFace && this.rigFaceAndPose(riggedFace, poseRig, 0.7);
     }
   };
 
   private onResults = (results: Results) => {
     this.drawResults(results);
     this.animateLive2DModel(results);
+  };
+
+  private workerEvent = (e: MessageEvent) => {
+    // const { face, pose } = JSON.parse(e.data || {});
+    // if (!(face && pose)) return;
+
+    // this.rigFaceAndPose(face, pose, 0.5);
+
+    const { time, ...result } = JSON.parse(e.data) as Results & {
+      time: number;
+    };
+
+    const time2 = new Date().getTime();
+
+    console.log('message elapsed time from worker', time2 - time);
+
+    this.onResults(result);
   };
 
   public switchTracking = async () => {
@@ -418,34 +496,50 @@ export class ModelManagement {
         return;
       }
 
-      if (!holistic) {
-        holistic = new Holistic({
-          locateFile: function (file) {
-            return `/holistic/${file}`;
-          },
-        });
-        holistic.setOptions({
-          modelComplexity: 1,
-          smoothLandmarks: true,
-          enableSegmentation: true,
-          smoothSegmentation: true,
-          refineFaceLandmarks: true,
-          minDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5,
-        });
+      // if (!holistic) {
+      //   holistic = new Holistic({
+      //     locateFile: function (file) {
+      //       return `/holistic/${file}`;
+      //     },
+      //   });
+      //   holistic.setOptions({
+      //     modelComplexity: 1,
+      //     smoothLandmarks: true,
+      //     enableSegmentation: true,
+      //     smoothSegmentation: true,
+      //     refineFaceLandmarks: true,
+      //     minDetectionConfidence: 0.5,
+      //     minTrackingConfidence: 0.5,
+      //   });
 
-        holistic.initialize();
+      //   await holistic.initialize();
 
-        holistic.onResults(this.onResults);
-      }
+      // holistic.onResults(this.onResults);
+      // }
+
+      holisticWorker.removeEventListener('message', this.workerEvent);
+
+      holisticWorker.addEventListener('message', this.workerEvent);
 
       if (videoElement && !camera) {
         camera = new Camera(videoElement, {
           onFrame: async () => {
-            holistic?.send({ image: videoElement });
+            const now = Date.now();
+            // console.log('main', now);
+            // holistic?.send({ image: videoElement });
+            // holisticWorker.postMessage({
+            //   rgba: getCaptureFrame(),
+            //   w: defaultWidth,
+            //   h: defaultHeight,
+            // });
+            createImageBitmap(videoElement).then((bitmap) => {
+              holisticWorker.postMessage({ now, bitmap }, [bitmap]); // transferable
+              // holisticWorker.postMessage(now); // transferable
+            });
           },
-          width: 1280,
-          height: 720,
+          frameRate: 24,
+          width: defaultWidth,
+          height: defaultHeight,
         });
       }
       camera?.start();
