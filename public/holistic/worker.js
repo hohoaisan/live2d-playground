@@ -1,10 +1,22 @@
 let ttttt = new Date().getTime();
 self.importScripts("holistic.js");
-self.importScripts("kalidokit.js");
+// self.importScripts("kalidokit.js");
+
+const EWorkerState = {
+  INIT: "init",
+  IDLE: "idle",
+  RUNNING: "running"
+}
 
 let holistic = null;
 let hModelInit = false;
+let workerState = EWorkerState.INIT
+let result = null
+
 async function init() {
+
+  workerState = EWorkerState.INIT;
+
   hModel = new Holistic({
     locateFile: function (file) {
       // if (file.endsWith(".tflite")) {
@@ -30,7 +42,6 @@ async function init() {
     // minTrackingConfidence: 0.5,
     // cameraOn: true,
     // modelComplexity: 0,
-    // useCpuInference: false,
     // smoothLandmarks: false,
     // enableSegmentation: false,
     // smoothSegmentation: false,
@@ -43,7 +54,7 @@ async function init() {
     minTrackingConfidence: 0.5,
     refineFaceLandmarks: true,
   });
-  hModel.onResults(function (results) {
+  hModel.onResults(async function (results) {
     // const facelm = results.faceLandmarks;
     // const poselm = results.poseLandmarks;
     // const poselm3D = results.za;
@@ -61,42 +72,56 @@ async function init() {
 
     //   postMessage(JSON.stringify(result));
     // }
-    postMessage(JSON.stringify({
-      time: new Date().getTime(),
-      faceLandmarks: results.faceLandmarks,
-      poseLandmarks: results.poseLandmarks,
-      za: results.za
-    }))
+    await new Promise((r) => setTimeout(r, 1))
+
+    result = results
+
+  
+    postMessage({
+      time: Date.now(),
+      faceLandmarks: result.faceLandmarks,
+      poseLandmarks: result.poseLandmarks,
+      za: result.za
+    })
+
+    workerState = EWorkerState.IDLE
 
   });
   await hModel.initialize();
   console.log("holistic worker initialization!");
-  hModelInit = true;
+
+  workerState = EWorkerState.IDLE
 }
 init();
 
 onmessage = async e => {
-  if (hModelInit && e.data) {
-    // const { rgba, w, h } = e.data;
-    // const timestamp = performance.now()
-    // if (!rgba) return
-
-    // if (rgba instanceof ArrayBuffer) {
-    //   const t1 = new Date().getTime()
-    //   const image = new ImageData(new Uint8ClampedArray(rgba), w, h)
-    //   await hModel.send({ image }, timestamp);
-    //   const t2 = new Date().getTime()
-    //   console.log("predict: ", t2 - t1);
-    // }
-
+  if (workerState === EWorkerState.INIT) {
+    console.warn("wolistic worker is still initializing!!!")
+    return;
+  }
+  if (workerState === EWorkerState.RUNNING) {
+    console.log("frame missed: running");
+    return;
+  }
+  if (workerState === EWorkerState.IDLE) {
+    workerState = EWorkerState.RUNNING
     const timestamp = performance.now()
-
     const now = Date.now()
     const prev = e.data.now;
-    const image = e.data.bitmap
-    console.log("delayed message sent to worker: ", now - prev);
+    const image = e.data.bitmap;
+    const delayedTime = now - prev;
+
+    console.log("elapsed time message received from main to worker: ", delayedTime);
+
+    // if (delayedTime > 500) {
+    //   console.log("frame missed: delayed");
+    //   workerState = EWorkerState.IDLE
+    //   return;
+    // }
+
     await hModel.send({ image }, timestamp);
     const timestamp2 = performance.now()
     console.log("predict time: ", timestamp2 - timestamp);
+    return
   }
 }

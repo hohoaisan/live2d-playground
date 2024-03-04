@@ -52,19 +52,19 @@ const SCALE = 1;
 const width = window.innerWidth;
 const height = window.innerHeight;
 
-const defaultWidth = 320,
-  defaultHeight = 240;
+const defaultWidth = 1280,
+  defaultHeight = 720;
 
 const videoElement = document.createElement('video');
-videoElement.width = defaultWidth;
-videoElement.height = defaultHeight;
-// videoElement.style.width = '320px';
-// videoElement.style.height = '240px';
-// videoElement.style.zIndex = '10';
-// videoElement.style.position = 'absolute';
-// videoElement.style.top = '0';
-// videoElement.style.right = '0';
-// document.body.append(videoElement);
+// videoElement.width = defaultWidth;
+// videoElement.height = defaultHeight;
+videoElement.style.width = '320px';
+videoElement.style.height = '240px';
+videoElement.style.zIndex = '10';
+videoElement.style.position = 'absolute';
+videoElement.style.top = '0';
+videoElement.style.right = '0';
+document.body.append(videoElement);
 
 const guideCanvas = document.createElement('canvas');
 guideCanvas.width = defaultWidth;
@@ -73,7 +73,7 @@ guideCanvas.style.width = '320px';
 guideCanvas.style.height = '240px';
 guideCanvas.style.zIndex = '10';
 guideCanvas.style.position = 'absolute';
-guideCanvas.style.top = '0';
+guideCanvas.style.top = '480px';
 guideCanvas.style.right = '0';
 document.body.append(guideCanvas);
 
@@ -468,17 +468,17 @@ export class ModelManagement {
   };
 
   private onResults = (results: Results) => {
-    this.drawResults(results);
+    // this.drawResults(results);
     this.animateLive2DModel(results);
   };
 
   private workerEvent = (e: MessageEvent) => {
-    // const { face, pose } = JSON.parse(e.data || {});
+    // const { face, pose } = e.data || {};
     // if (!(face && pose)) return;
 
     // this.rigFaceAndPose(face, pose, 0.5);
 
-    const { time, ...result } = JSON.parse(e.data) as Results & {
+    const { time, ...result } = e.data as Results & {
       time: number;
     };
 
@@ -524,7 +524,6 @@ export class ModelManagement {
       if (videoElement && !camera) {
         camera = new Camera(videoElement, {
           onFrame: async () => {
-            const now = Date.now();
             // console.log('main', now);
             // holistic?.send({ image: videoElement });
             // holisticWorker.postMessage({
@@ -532,10 +531,9 @@ export class ModelManagement {
             //   w: defaultWidth,
             //   h: defaultHeight,
             // });
-            createImageBitmap(videoElement).then((bitmap) => {
-              holisticWorker.postMessage({ now, bitmap }, [bitmap]); // transferable
-              // holisticWorker.postMessage(now); // transferable
-            });
+            const bitmap = await createImageBitmap(videoElement);
+            const now = Date.now();
+            holisticWorker.postMessage({ now, bitmap }, [bitmap]); // transferable
           },
           frameRate: 24,
           width: defaultWidth,
